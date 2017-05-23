@@ -21,10 +21,11 @@ chainest <- function (chain, nTrim = 200) {
     est
 }
 
+## Detect outlier with univariate normal displacement model, fixed epsilon
 goutlie <- function (x, nsamp = 800,
-                                 mu0 = 0, tausq0 = 2e-2,
-                                 sigsq0 = 3^2, nu0 = 2,
-                                 eps = 0.05, xi = 1e-4) {
+                     mu0 = 0, tausq0 = 2e-2,
+                     sigsq0 = 3^2, nu0 = 2,
+                     eps = 0.05, xi = 1e-4) {
     ## x is a vector of data points.
     n <- length(x)
 
@@ -68,73 +69,8 @@ goutlie <- function (x, nsamp = 800,
     list(del = del[,-1], sigsq = sigsq[-1], mu = mu[-1], A = A[,-1])
 }
 
-## With epsilon beta distributed.
-goutlie.betaeps <- function (x, nsamp = 800,
-                                mu0 = 0, tausq0 = 2e-2,
-                                sigsq0 = 3^2, nu0 = 2,
-                                epsmean = 0.05, xi = 1e-4) {
-    ## x is a vector of data points.
-    n <- length(x)
-
-    sigsq <- rep(-1e6, nsamp+1)
-    sigsq[1] <- (max(x) - min(x))^2 / 4
-    mu <- rep(-1e6, nsamp+1)
-    mu[1] <- 0
-
-    del <- matrix(-1e6, nrow = n, ncol = nsamp + 1)
-    del[,1] <- 0
-    A <- matrix(-1e6, nrow = n, ncol = nsamp + 1)
-    A[,1] <- 0
-
-    eps <- rep(-1e6, nsamp+1)
-    eps[1] <- epsmean
-
-    ## Convert prior mean of epsilon to a beta distribution, with
-    ## P(epsilon < 0.5) = 0.99
-    alpha <- uniroot( function (alpha) {
-        beta <- (1/epsmean - 1) * alpha
-        qbeta(0.99, alpha, beta) - 0.5
-    }, interval=c(1e-7, 1e7))$root
-    beta <- (1/epsmean - 1) * alpha
-
-
-    rmu_sigsq_y <- function (sigsq, y, tausq0, mu0) {
-        n <- length(y)
-        pressq <- tausq0 + n/sigsq
-        rnorm( 1, (tausq0*mu0 + sum(y)/sigsq) / pressq, sqrt(pressq)^-1 )
-    }
-
-    rsigsq_mu_y <- function (mu, y, nu0, sigsq0) {
-        n <- length(y)
-        nu <- nu0+n
-        rinvchisq( 1, nu, (nu0*sigsq0 + sum((y - mu)^2)) / nu )
-    }
-
-    for (r in 2:(nsamp+1)) {
-        correctx <- x - c(del[,r-1] * A[,r-1])
-        mu[r] <- rmu_sigsq_y(sigsq[r-1], correctx, tausq0, mu0)
-        sigsq[r] <- rsigsq_mu_y(mu[r], correctx, nu0, sigsq0)
-
-        outlieprob <- (tmp <- eps[r-1] * dnorm(x, mu[r]+A[,r-1], sqrt(sigsq[r]))) /
-            (tmp + (1-eps[r-1])*dnorm(x, mu[r], sqrt(sigsq[r])))
-        del[,r] <- rbinom(n, 1, outlieprob)
-
-        outlying <- del[,r] == 1
-        for (i in which(outlying))
-            A[i,r] <- rmu_sigsq_y(sigsq[r], x[i] - mu[r], xi, 0)
-        A[!outlying,r] <- rnorm(sum(!outlying), 0, sqrt(1/xi))
-
-        n_out <- sum(outlying)
-        eps[r] <- rbeta(1, alpha + n_out, beta + n - n_out)
-    }
-
-    list(del = del[,-1], sigsq = sigsq[-1], mu = mu[-1], A = A[,-1])
-}
-
-
-############## Normal mixture version
-
-## With epsilon beta distributed.
+## Detect outlier with univariate normal displacement model, with beta
+## distributed epsilon
 goutlie.betaeps <- function (x, nsamp = 800,
                                 mu0 = 0, tausq0 = 2e-2,
                                 sigsq0 = 3^2, nu0 = 2,
@@ -196,7 +132,7 @@ goutlie.betaeps <- function (x, nsamp = 800,
     list(del = del[,-1], sigsq = sigsq[-1], mu = mu[-1], A = A[,-1])
 }
 
-## Mixture of normals with outlier detection
+## Univariate mixture of normals with outlier detection
 gibmix.out <- function (y, k, nsamp = 1000,
                     mu0 = numeric(k), tausq0 = rep(1e-7,k),
                     nu0 = rep(4,k), sigsq0 = rep(var(y)/k, k),
@@ -294,97 +230,7 @@ gibmix.out <- function (y, k, nsamp = 1000,
 }
 
 
-
-## Usual Bayesian linear regression
-blm <- function (x, y,
-                 mu0 = numeric(ncol(x)+1),
-                 omega0 = diag(rep(1e-7, ncol(x)+1)),
-                 nu0 = 1e-7, sigsq0 = 10) {
-    x1 <- cbind(1, as.matrix(x))        # Add constant terms to x
-    y <- as.matrix(y)
-    d <- t(x1) %*% x1
-    omega_n <- d + omega0
-    mu_n <- solve(omega_n) %*%
-        ( d %*% solve(d) %*% t(x1) %*% y + omega0 %*% mu0 )
-    nu_n <- nu0 + length(y)
-    sigsq_n <- c( ( nu0 * sigsq0 + t(y) %*% y + t(mu0) %*% omega0 %*% mu0 -
-                 t(mu_n) %*% omega_n %*% mu_n ) / nu_n )
-
-    ## Return the parameters for the t distribution of beta
-    t_sigma <- sigsq_n * solve(omega_n) # Sigma for multivariate t-distribution
-    mu_n <- c(mu_n)
-    colnames(t_sigma) <- rownames(t_sigma) <- names(mu_n) <- c('const', colnames(x))
-    list(mu = mu_n, df = nu_n, sigma = t_sigma,
-         omega_n = omega_n, sigsq_n= sigsq_n)
-}
-
-
-## Only one dimensional
-blm.out <- function (x, y, nsamp = 1000,
-                     mu0 = numeric(ncol(x)+1),
-                     omega0 = diag(rep(1e-7, ncol(x)+1)),
-                     nu0 = 1e-7, sigsq0 = 10,
-                     epsmean = 0.05, xi = 1e-4) {
-    x1 <- cbind(1, x)
-    n <- nrow(x)
-
-    del <- matrix(-1e6, nrow = n, ncol = nsamp + 1)
-    del[,1] <- 0
-    A <- matrix(-1e6, nrow = n, ncol = nsamp + 1)
-    A[,1] <- 0
-
-    eps <- rep(-1e6, nsamp+1)
-    eps[1] <- epsmean
-
-    ## Convert prior mean of epsilon to a beta distribution, with
-    ## P(epsilon < 0.5) = 0.99
-    alpha <- uniroot( function (alpha) {
-        beta <- (1/epsmean - 1) * alpha
-        qbeta(0.99, alpha, beta) - 0.5
-    }, interval=c(1e-7, 1e7))$root
-    beta <- (1/epsmean - 1) * alpha
-
-    resid <- matrix(-1e6, nrow(x), nsamp+1)
-    betcoef <- matrix(-1e6, ncol(x1), nsamp+1)
-
-    rmu_sigsq_y <- function (sigsq, y, tausq0, mu0) {
-        n <- length(y)
-        pressq <- tausq0 + n/sigsq
-        rnorm( 1, (tausq0*mu0 + sum(y)/sigsq) / pressq, sqrt(pressq)^-1 )
-    }
-
-    pred <- rep(1e-6, nrow(x))
-    for (r in 2:(nsamp+1)) {
-        inlying <- del[,r-1] == 0
-
-        blmres <- blm(x[inlying,,drop=F], y[inlying,drop=F],
-                      mu0 = mu0, omega0 = omega0, nu0 = nu0, sigsq0 = sigsq0)
-        residvar <- rinvchisq(1, blmres$df, blmres$sigsq_n)
-        betcoef[,r] <- c(rmvn(1, blmres$mu, residvar * solve(blmres$omega_n)))
-
-        resid[,r] <- c(x1 %*% betcoef[,r]) - y
-        ## resid[!inlying,r] <- rnorm(sum(!inlying), A[,r-1], sqrt(rinvchisq(1,nu0,sigsq0)))
-        correctresid <- resid[,r] - del[,r-1] * A[,r-1]
-
-        residsd <- sqrt(residvar)
-        outlieprob <- pmin(1, exp((tmp <- log(eps[r-1]) + dnorm(resid[,r], A[,r-1], residsd, log=T)) -
-            log(exp(tmp) + exp(log(1-eps[r-1]) + dnorm(resid[,r], 0, residsd, log=T)))))
-
-        del[,r] <- rbinom(n, 1, outlieprob)
-
-        outlying <- del[,r] == 1
-        n_out <- sum(outlying)
-        for (i in which(outlying))
-            A[i,r] <- rmu_sigsq_y(residvar, resid[i,r], xi, 0)
-        A[!outlying,r] <- rnorm(n - n_out, 0, sqrt(1/xi))
-
-        eps[r] <- rbeta(1, alpha + n_out, beta + n - n_out)
-    }
-
-    list(bet = betcoef[,-1], del = del[,-1], A = A[,-1])
-}
-
-
+## Multivariate normal mixture with outlier detection
 gmvmix.out <- function (x,
                         k = 2,
                         mu0 = matrix(0, nrow(x), k),
@@ -514,5 +360,92 @@ dmvn2 <- function (x, mu, sig, ...) {
 }
 
 
+########### Regression
+## Usual Bayesian linear regression
+blm <- function (x, y,
+                 mu0 = numeric(ncol(x)+1),
+                 omega0 = diag(rep(1e-7, ncol(x)+1)),
+                 nu0 = 1e-7, sigsq0 = 10) {
+    x1 <- cbind(1, as.matrix(x))        # Add constant terms to x
+    y <- as.matrix(y)
+    d <- t(x1) %*% x1
+    omega_n <- d + omega0
+    mu_n <- solve(omega_n) %*%
+        ( d %*% solve(d) %*% t(x1) %*% y + omega0 %*% mu0 )
+    nu_n <- nu0 + length(y)
+    sigsq_n <- c( ( nu0 * sigsq0 + t(y) %*% y + t(mu0) %*% omega0 %*% mu0 -
+                 t(mu_n) %*% omega_n %*% mu_n ) / nu_n )
 
+    ## Return the parameters for the t distribution of beta
+    t_sigma <- sigsq_n * solve(omega_n) # Sigma for multivariate t-distribution
+    mu_n <- c(mu_n)
+    colnames(t_sigma) <- rownames(t_sigma) <- names(mu_n) <- c('const', colnames(x))
+    list(mu = mu_n, df = nu_n, sigma = t_sigma,
+         omega_n = omega_n, sigsq_n= sigsq_n)
+}
+
+## Bayesian regression with outlier detection
+blm.out <- function (x, y, nsamp = 1000,
+                     mu0 = numeric(ncol(x)+1),
+                     omega0 = diag(rep(1e-7, ncol(x)+1)),
+                     nu0 = 1e-7, sigsq0 = 10,
+                     epsmean = 0.05, xi = 1e-4) {
+    x1 <- cbind(1, x)
+    n <- nrow(x)
+
+    del <- matrix(-1e6, nrow = n, ncol = nsamp + 1)
+    del[,1] <- 0
+    A <- matrix(-1e6, nrow = n, ncol = nsamp + 1)
+    A[,1] <- 0
+
+    eps <- rep(-1e6, nsamp+1)
+    eps[1] <- epsmean
+
+    ## Convert prior mean of epsilon to a beta distribution, with
+    ## P(epsilon < 0.5) = 0.99
+    alpha <- uniroot( function (alpha) {
+        beta <- (1/epsmean - 1) * alpha
+        qbeta(0.99, alpha, beta) - 0.5
+    }, interval=c(1e-7, 1e7))$root
+    beta <- (1/epsmean - 1) * alpha
+
+    resid <- matrix(-1e6, nrow(x), nsamp+1)
+    betcoef <- matrix(-1e6, ncol(x1), nsamp+1)
+
+    rmu_sigsq_y <- function (sigsq, y, tausq0, mu0) {
+        n <- length(y)
+        pressq <- tausq0 + n/sigsq
+        rnorm( 1, (tausq0*mu0 + sum(y)/sigsq) / pressq, sqrt(pressq)^-1 )
+    }
+
+    pred <- rep(1e-6, nrow(x))
+    for (r in 2:(nsamp+1)) {
+        inlying <- del[,r-1] == 0
+
+        blmres <- blm(x[inlying,,drop=F], y[inlying,drop=F],
+                      mu0 = mu0, omega0 = omega0, nu0 = nu0, sigsq0 = sigsq0)
+        residvar <- rinvchisq(1, blmres$df, blmres$sigsq_n)
+        betcoef[,r] <- c(rmvn(1, blmres$mu, residvar * solve(blmres$omega_n)))
+
+        resid[,r] <- c(x1 %*% betcoef[,r]) - y
+        ## resid[!inlying,r] <- rnorm(sum(!inlying), A[,r-1], sqrt(rinvchisq(1,nu0,sigsq0)))
+        correctresid <- resid[,r] - del[,r-1] * A[,r-1]
+
+        residsd <- sqrt(residvar)
+        outlieprob <- pmin(1, exp((tmp <- log(eps[r-1]) + dnorm(resid[,r], A[,r-1], residsd, log=T)) -
+            log(exp(tmp) + exp(log(1-eps[r-1]) + dnorm(resid[,r], 0, residsd, log=T)))))
+
+        del[,r] <- rbinom(n, 1, outlieprob)
+
+        outlying <- del[,r] == 1
+        n_out <- sum(outlying)
+        for (i in which(outlying))
+            A[i,r] <- rmu_sigsq_y(residvar, resid[i,r], xi, 0)
+        A[!outlying,r] <- rnorm(n - n_out, 0, sqrt(1/xi))
+
+        eps[r] <- rbeta(1, alpha + n_out, beta + n - n_out)
+    }
+
+    list(bet = betcoef[,-1], del = del[,-1], A = A[,-1])
+}
 
