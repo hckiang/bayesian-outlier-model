@@ -122,7 +122,7 @@ many_mixture_test()
 
 
 
-plotreg <- function (x, blmres) {
+plotreg <- function () {
     library('lattice')
     library('latticeExtra')
     library('mvnfast')
@@ -216,7 +216,7 @@ plotreg <- function (x, blmres) {
 
     c('Manual outlier removal' = plot.orig, 'Our Method' = plot.corr)
 }
-plotreg(dispmpg)
+plotreg()
 
 
 ##### Multivariate normal mixture
