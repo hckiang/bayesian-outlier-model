@@ -82,19 +82,19 @@ rainfall_test()
 many_mixture_test <- function () {
     library('lattice')
     library('latticeExtra')
-    set.seed(1)
+    ##set.seed(1)
     rainfall <- c(rt(1000,2)+100, rt(400,2)*2.5 -500,
                   rt(900,2) +200, runif(15, -600, 300))
 
     gmixfit <- gibmix.out(rainfall, 3, nsamp = 1500,
                           xi = 1e-5, epsmean = 0.15)
 
-    gmixev <- list(mu = apply(gmixfit$mu[,-(1:100)], 1, mean),
-                   sigsq = apply(gmixfit$sigsq[,-(1:100)], 1, mean),
-                   pi = apply(gmixfit$pi[,-(1:100)], 1, mean),
-                   eps = mean(gmixfit$eps[-(1:100)]),
-                   del = apply(gmixfit$del[,-(1:100)], 1, mean),
-                   A = apply(gmixfit$A[,-(1:100)], 1, mean))
+    gmixev <- list(mu = apply(gmixfit$mu[,-(1:400)], 1, mean),
+                   sigsq = apply(gmixfit$sigsq[,-(1:400)], 1, mean),
+                   pi = apply(gmixfit$pi[,-(1:400)], 1, mean),
+                   eps = mean(gmixfit$eps[-(1:400)]),
+                   del = apply(gmixfit$del[,-(1:400)], 1, mean),
+                   A = apply(gmixfit$A[,-(1:400)], 1, mean))
 
     plot.fit <- histogram( rainfall, type='d', col=0, nint=52,
               main = 'Daily rain fall somewhere in Washinton',
