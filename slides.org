@@ -15,6 +15,7 @@
 #+LaTeX_CLASS: beamer
 #+LATEX_CLASS_OPTIONS: [presentation]
 #+LaTeX_CLASS_OPTIONS: [bigger]
+#+LATEX_HEADER: \usecolortheme{spruce}
 #+LATEX_HEADER: \usepackage{amsmath}
 #+LATEX_HEADER: \usepackage[style=authoryear,backend=biber]{biblatex}
 #+LATEX_HEADER: \bibliography{ref}
@@ -31,7 +32,7 @@ where
 
     - Assume probability of outlying $\epsilon$ is known and $\epsilon \in\, ]0,0.5[$
     - $\phi$ is the normal density.
-    - A = (A_i)_{i\in I} are 'outliers's displacement'
+    - A = (A_i)_{i\in I} are 'outliers' displacement'
 
 Note that weighted sum of any probability measures is still probability measure.
 
@@ -269,6 +270,16 @@ Note that weighted sum of any probability measures is still probability measure.
 #+ATTR_LATEX: :width 0.8\linewidth
 [[./fueleff.pdf]]
 
-*** Reference
+*** 
+**** Works Cited
 \printbibliography
-
+**** Source code
+[[https://github.com/hckiang/bayesian-outlier-model][https://github.com/hckiang/bayesian-outlier-model]]
+**** $\quad$                                               :BMCOL:B_block:
+:PROPERTIES:
+:BEAMER_col: 0.5
+:BEAMER_env: block
+:BEAMER_envargs: <2->
+:END:
+#+ATTR_LATEX: :width .4\linewidth
+[[./github_qrcode.png]]
