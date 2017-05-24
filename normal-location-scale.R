@@ -428,8 +428,6 @@ blm.out <- function (x, y, nsamp = 1000,
         betcoef[,r] <- c(rmvn(1, blmres$mu, residvar * solve(blmres$omega_n)))
 
         resid[,r] <- c(x1 %*% betcoef[,r]) - y
-        ## resid[!inlying,r] <- rnorm(sum(!inlying), A[,r-1], sqrt(rinvchisq(1,nu0,sigsq0)))
-        correctresid <- resid[,r] - del[,r-1] * A[,r-1]
 
         residsd <- sqrt(residvar)
         outlieprob <- pmin(1, exp((tmp <- log(eps[r-1]) + dnorm(resid[,r], A[,r-1], residsd, log=T)) -
