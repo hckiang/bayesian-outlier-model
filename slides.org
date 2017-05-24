@@ -1,4 +1,4 @@
-#+TITLE:     Outlier analysis using Bayesian inference
+#+TITLE:     Outlier Analysis with Bayesian inference
 #+AUTHOR:    Hao Chi Kiang
 #+EMAIL:     hckiang@riseup.net
 #+DESCRIPTION: 
@@ -15,7 +15,6 @@
 #+LaTeX_CLASS: beamer
 #+LATEX_CLASS_OPTIONS: [presentation]
 #+LaTeX_CLASS_OPTIONS: [bigger]
-#+LATEX_HEADER: \usecolortheme{spruce}
 #+LATEX_HEADER: \usepackage{amsmath}
 #+LATEX_HEADER: \usepackage[style=authoryear,backend=biber]{biblatex}
 #+LATEX_HEADER: \bibliography{ref}
