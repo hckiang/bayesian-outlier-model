@@ -31,7 +31,7 @@
     - $\phi$ is the normal density.
     - $\epsilon$ is the probability of outlying and assumed to be known
     - $\epsilon \in\; ]0,\frac{1}{2}[$
-    - A = (A_i)_{i\in I} are 'outliers' displacement'
+    - A = (A_i)_{i\in I} are `outliers' displacement'
 
 - We know $y_i$ and want to infer $\mu$, $\sigma$ and $A$
 
@@ -244,7 +244,7 @@
 \small
 - Joint prior for $\beta$ and $\sigma$
   \[
-      \beta |\sigma^2, \delta, A, \epsilon \sim N(\nu_0, \sigma^2\Omega_0^{-1})\quad \sigma^2 |\delta, A, \epsilon \sim \sinvchisq(\nu_0, \sigma_0^2)
+      \beta |\sigma^2, \delta, A, \epsilon \sim N(\mu_0, \sigma^2\Omega_0^{-1})\quad \sigma^2 |\delta, A, \epsilon \sim \sinvchisq(\nu_0, \sigma_0^2)
   \]
 - Posterior
   \begin{align*}
