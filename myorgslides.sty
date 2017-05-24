@@ -1,0 +1,34 @@
+\newcommand{\headlinecolor}{\normalcolor}
+\newcommand{\codefont}{\ttfamily}
+\DeclareTextFontCommand{\codefont}{\ttfamily}
+
+
+\RequirePackage{amsmath}
+\RequirePackage[style=authoryear,backend=biber]{biblatex}
+
+\definecolor{BackgroundGreen}{RGB}{105,220,170}
+\definecolor{TitleGreen}{RGB}{0,96,68}
+\definecolor{PureBlue}{RGB}{0, 102, 204}
+\definecolor{KindaRed}{RGB}{220,10,10}
+\definecolor{BackgroundGrey}{RGB}{250,250,250}
+
+\DeclareMathOperator{\sinvchisq}{Scaled-inv-\chi^2}
+\setbeamercolor{frametitle}{fg=black,bg=BackgroundGreen}
+\setbeamercolor{title}{fg=TitleGreen}
+\setbeamercolor{titlelike}{fg=TitleGreen}
+\setbeamercolor{structure}{fg=TitleGreen}
+\setbeamercolor{alerted text}{fg=PureBlue}
+\setbeamercolor{background canvas}{bg=BackgroundGrey}
+
+\setbeamerfont{frametitle}{size=\normal}
+
+\setbeamersize{text margin left=0.5cm,text margin right=0.5cm}
+
+\setbeamertemplate{bibliography item}{}
+
+
+\RequirePackage{kmath}
+\RequirePackage[tt=false]{libertine}
+%%\RequirePackage[sfdefault]{FiraSans}
+
+\RequirePackage{bigints}

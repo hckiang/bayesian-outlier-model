@@ -232,13 +232,13 @@ testgmvmix.out <- function () {
 
     xyplot(testx[2,] ~ testx[1,])
 
-    res <- gmvmix.out(testx, k=2, nsamp = 3000)
-    del <- apply(res$del[,-(1:1000)], c(1), mean)
-    cols <- apply(res$z[,-(1:1000)], 1, function(x) which.max(tabulate(x)))
+    res <- gmvmix.out(testx, k=2, nsamp = 50000)
+    del <- apply(res$del[,-(1:20000)], c(1), mean)
+    cols <- apply(res$z[,-(1:20000)], 1, function(x) which.max(tabulate(x)))
     cols[del > 0.6] <- 6
 
-    mu <- apply(res$mu[,,-(1:1000)], c(1,2), mean)
-    sig <- apply(res$sig[,,,-(1:1000)], c(1,2,3), mean)
+    mu <- apply(res$mu[,,-(1:20000)], c(1,2), mean)
+    sig <- apply(res$sig[,,,-(1:20000)], c(1,2,3), mean)
     plot.out <- xyplot(testx[2,] ~ testx[1,], col = cols,
                        xlab = '', ylab = '',
                        main = 'Normal mixture with outlier detection',
@@ -256,11 +256,11 @@ testgmvmix.out <- function () {
                        })
 
 
-    res.naive <- gmvmix.out(testx, k=2, nsamp = 3000, detect.outlier = F)
-    del.naive <- apply(res.naive$del[,-(1:1000)], c(1), mean)
-    cols.naive <- apply(res.naive$z[,-(1:1000)], 1, function(x) which.max(tabulate(x)))
-    mu.naive <- apply(res.naive$mu[,,-(1:1000)], c(1,2), mean)
-    sig.naive <- apply(res.naive$sig[,,,-(1:1000)], c(1,2,3), mean)
+    res.naive <- gmvmix.out(testx, k=2, nsamp = 10000, detect.outlier = F)
+    del.naive <- apply(res.naive$del[,-(1:3000)], c(1), mean)
+    cols.naive <- apply(res.naive$z[,-(1:3000)], 1, function(x) which.max(tabulate(x)))
+    mu.naive <- apply(res.naive$mu[,,-(1:3000)], c(1,2), mean)
+    sig.naive <- apply(res.naive$sig[,,,-(1:3000)], c(1,2,3), mean)
 
     plot.naive <- xyplot(testx[2,] ~ testx[1,], col = cols.naive,
                          xlab = '', ylab = '',
