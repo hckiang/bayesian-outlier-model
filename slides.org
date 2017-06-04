@@ -54,7 +54,7 @@
 \mu |A, \delta \sim N(\mu_0, \tau_0^2)
 \]
 \[
-\sigma^2 | A, \delta ~ \sim \sinvchisq(\nu_0, \sigma_0^2)
+\sigma^2 | A, \delta \sim \sinvchisq(\nu_0, \sigma_0^2)
 \]
 
 - Posterior
@@ -162,12 +162,12 @@
   - Depends only on $z$
   - Use the Dirichlet-Multinomial conjugate prior
     \[
-      w | y, \mu, \sigma, A, \delta, \epsilon ~ Dirichlet(\gamma)
+      w | y, \mu, \sigma, A, \delta, \epsilon \sim Dirichlet(\gamma)
     \]
   - Then posterior is
     \small
     \[
-      w | y, \mu, \sigma, z, A, \delta, \epsilon ~ Dirichlet\left( (n_k + \gamma_k)_{k\in K} \right)
+      w | y, \mu, \sigma, z, A, \delta, \epsilon \sim Dirichlet\left( (n_k + \gamma_k)_{k\in K} \right)
     \]
     \normalsize
 
